@@ -16,6 +16,14 @@
         </a>
     </div>
 
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
     <div class="table-container">
         <div class="table-card">
             <div class="table-responsive">
@@ -26,6 +34,7 @@
                             <th>Name</th>
                             <th>NPM</th>
                             <th>Kelas</th>
+                            <th class="text-center">Aksi</th> 
                         </tr>
                     </thead>
                     <tbody>
@@ -48,12 +57,29 @@
                             <td>
                                 <span class="class-tag">{{ $user->nama_kelas }}</span>
                             </td>
+                            <td class="text-center">
+                                <div class="action-buttons">
+                                  
+                                    <a href="{{ route('user.edit', $user->id) }}" class="btn-edit" title="Edit User">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                  
+                                    <form action="{{ route('user.destroy', $user->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-delete" title="Hapus User" 
+                                                onclick="return confirm('Yakin ingin menghapus user {{ $user->nama }}?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                         @endforeach
                         
                         @if(count($users) === 0)
                         <tr>
-                            <td colspan="4" class="text-center py-5">
+                            <td colspan="5" class="text-center py-5">
                                 <div class="empty-state">
                                     <i class="bi bi-people display-1 text-muted"></i>
                                     <h4 class="text-muted mt-3">Belum ada data pengguna</h4>
@@ -117,6 +143,18 @@
         box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
         color: white;
     }
+
+    .alert {
+        border-radius: 10px;
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+    .alert-success {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+
     .table-container {
         margin-bottom: 1.5rem;
     }
@@ -200,6 +238,47 @@
         font-weight: 500;
         font-size: 0.8rem;
     }
+
+ 
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+    }
+    .btn-edit, .btn-delete {
+        width: 35px;
+        height: 35px;
+        border: none;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .btn-edit {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+    }
+    .btn-edit:hover {
+        background: linear-gradient(135deg, #2980b9, #2471a3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        color: white;
+    }
+    .btn-delete {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+    }
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #c0392b, #a93226);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+        color: white;
+    }
+
     .empty-state {
         padding: 2.5rem 1rem;
     }
@@ -216,6 +295,9 @@
         }
         .page-title {
             font-size: 1.8rem;
+        }
+        .action-buttons {
+            flex-direction: column;
         }
     }
 </style>
