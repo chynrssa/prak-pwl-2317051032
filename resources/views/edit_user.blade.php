@@ -5,33 +5,25 @@
     <div class="col-md-6 col-lg-5">
         <div class="form-container">
 
-            {{-- 
-            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #3498db;">
-                <h5 style="color: #3498db; margin-bottom: 0.5rem;">Debug Info:</h5>
-                <p style="margin: 0; font-size: 0.9rem;">
-                    <strong>Jumlah Kelas:</strong> {{ $kelas->count() }}<br>
-                    <strong>Data:</strong> 
-                    @if($kelas->count() > 0)
-                        @foreach($kelas as $item)
-                            ID: {{ $item->id }}, Nama: {{ $item->nama_kelas }} |
-                        @endforeach
-                    @else
-                        Tidak ada data kelas
-                    @endif
-                </p>
-            </div>
-            --}}
-
             <div class="form-header">
                 <h1 class="form-title">
-                    <i class="bi bi-person-plus me-2"></i>
-                    Buat Pengguna Baru
+                    <i class="bi bi-person-check me-2"></i>
+                    Edit Pengguna
                 </h1>
-                <p class="form-subtitle">Isi form berikut untuk menambahkan pengguna baru</p>
+                <p class="form-subtitle">Perbarui data pengguna {{ $user->nama }}</p>
             </div>
+
+            @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Terdapat kesalahan dalam pengisian form. Silakan periksa kembali.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
             
-            <form action="{{ route('user.store') }}" method="POST" class="user-form">
+            <form action="{{ route('user.update', $user->id) }}" method="POST" class="user-form">
                 @csrf
+                @method('PUT')
 
                 <div class="form-group">
                     <label for="nama" class="form-label">
@@ -39,8 +31,11 @@
                         Nama Lengkap
                     </label>
                     <input type="text" class="form-control" id="nama" name="nama" 
+                           value="{{ old('nama', $user->nama) }}" 
                            placeholder="Masukkan nama lengkap" required>
-                    <div class="form-hint">Contoh: Cahya Nerissa</div>
+                    @error('nama')
+                        <div class="text-danger">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="form-group">
@@ -49,8 +44,11 @@
                         NPM
                     </label>
                     <input type="text" class="form-control" id="npm" name="npm" 
+                           value="{{ old('npm', $user->nim) }}" 
                            placeholder="Masukkan NPM" required>
-                    <div class="form-hint">Contoh: 2317051032</div>
+                    @error('npm')
+                        <div class="text-danger">{{ $message }}</div>
+                    @enderror
                 </div>
    
                 <div class="form-group">
@@ -59,25 +57,17 @@
                         Kelas
                     </label>
                     <select class="form-select" name="kelas_id" id="kelas_id" required>
-                        <option value="" selected disabled>Pilih Kelas</option>
-                        @if(isset($kelas) && $kelas->count() > 0)
-                            @foreach ($kelas as $kelasItem)
-                                <option value="{{ $kelasItem->id }}">
-                                    {{ $kelasItem->nama_kelas }}
-                                </option>
-                            @endforeach
-                        @else
-                            <option value="" disabled>Tidak ada data kelas</option>
-                        @endif
+                        <option value="" disabled>Pilih Kelas</option>
+                        @foreach ($kelas as $kelasItem)
+                            <option value="{{ $kelasItem->id }}" 
+                                {{ old('kelas_id', $user->kelas_id) == $kelasItem->id ? 'selected' : '' }}>
+                                {{ $kelasItem->nama_kelas }}
+                            </option>
+                        @endforeach
                     </select>
-                    <div class="form-hint">Pilih kelas dari dropdown</div>
-                    
-                    @if(!isset($kelas) || $kelas->count() === 0)
-                    <div class="alert alert-warning mt-2" style="font-size: 0.8rem; padding: 0.5rem;">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Data kelas belum tersedia. Silakan hubungi administrator.
-                    </div>
-                    @endif
+                    @error('kelas_id')
+                        <div class="text-danger">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="form-actions">
@@ -87,7 +77,7 @@
                     </a>
                     <button type="submit" class="btn btn-submit">
                         <i class="bi bi-check-lg me-2"></i>
-                        Simpan Data
+                        Update Data
                     </button>
                 </div>
             </form>
@@ -158,11 +148,10 @@
         color: #adb5bd;
         font-size: 0.9rem;
     }
-    .form-hint {
+    .text-danger {
         font-size: 0.8rem;
-        color: #6c757d;
         margin-top: 0.4rem;
-        font-style: italic;
+        color: #e74c3c;
     }
     .form-actions {
         display: flex;
@@ -198,25 +187,29 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .btn-submit {
-        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        background: linear-gradient(135deg, #3498db, #2980b9);
         color: white;
-        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
     }
     .btn-submit:hover {
-        background: linear-gradient(135deg, #229954, #27ae60);
+        background: linear-gradient(135deg, #2980b9, #2471a3);
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
         color: white;
     }
     .btn-submit:active {
         transform: translateY(0);
     }
 
-    .alert-warning {
-        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-        color: #856404;
-        border: 1px solid #ffeaa7;
-        border-radius: 6px;
+    .alert {
+        border-radius: 10px;
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da, #f1b0b7);
+        color: #721c24;
+        border-left: 4px solid #dc3545;
     }
 
     @media (max-width: 768px) {
