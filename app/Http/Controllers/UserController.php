@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Kelas;
 use App\Models\UserModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-    public $userModel;
-    public $kelasModel;
+    protected $userModel;
+    protected $kelasModel;
 
     public function __construct()
     {
@@ -17,22 +20,67 @@ class UserController extends Controller
         $this->kelasModel = new Kelas();
     }
 
-    public function create()
+    /**
+     * Tampilkan halaman daftar user
+     */
+    public function index()
     {
-        $kelas = $this->kelasModel->getKelas();
-        $data = [
-            'title' => 'Create User - Student Management',
-            'kelas' => $kelas,
-        ];
-        return view('create_user', $data);
+        // Ambil data user + join dengan tabel kelas
+        $users = $this->userModel->getUser();
+        $title = 'User Management';
+
+        // Dekripsi nama_kelas jika terenkripsi
+        foreach ($users as $user) {
+            if (!empty($user->nama_kelas)) {
+                try {
+                    $user->nama_kelas = Crypt::decryptString($user->nama_kelas);
+                } catch (DecryptException $e) {
+                    Log::warning('Gagal dekripsi nama_kelas (ID: ' . $user->id . ')', [
+                        'error' => $e->getMessage()
+                    ]);
+                    $user->nama_kelas = '[Data Kelas Rusak]';
+                }
+            } else {
+                $user->nama_kelas = '-';
+            }
+        }
+
+        return view('list_user', compact('users', 'title'));
     }
 
+    /**
+     * Tampilkan form tambah user
+     */
+    public function create()
+    {
+        $kelas = Kelas::all();
+
+        foreach ($kelas as &$kelasItem) {
+            if (!empty($kelasItem->nama_kelas)) {
+                try {
+                    $kelasItem->nama_kelas = Crypt::decryptString($kelasItem->nama_kelas);
+                } catch (DecryptException $e) {
+                    Log::warning('Gagal dekripsi nama_kelas pada form create', [
+                        'kelas_id' => $kelasItem->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    $kelasItem->nama_kelas = '[Data Kelas Rusak]';
+                }
+            }
+        }
+
+        return view('create_user', ['kelas' => $kelas]);
+    }
+
+    /**
+     * Simpan data user baru
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
-            'npm' => 'required|string|max:20',
-            'kelas_id' => 'required|exists:kelas,id'
+            'npm' => 'required|string|max:20|unique:user,nim',
+            'kelas_id' => 'required|exists:kelas,id',
         ]);
 
         $this->userModel->create([
@@ -41,54 +89,64 @@ class UserController extends Controller
             'kelas_id' => $validated['kelas_id'],
         ]);
 
-        return redirect()->to('/user')->with('success', 'User berhasil ditambahkan!');
+        // Redirect ke halaman list user setelah tambah
+        return redirect()->route('user.index')->with('success', 'User berhasil ditambahkan!');
     }
 
-    public function index()
-    {
-        $data = [
-            'title' => 'List Users - Student Management',
-            'users' => $this->userModel->getUser(),
-        ];
-        return view('list_user', $data);
-    }
-
+    /**
+     * Edit data user
+     */
     public function edit($id)
     {
         $user = $this->userModel->findOrFail($id);
         $kelas = $this->kelasModel->getKelas();
-        
-        $data = [
+
+        foreach ($kelas as &$kelasItem) {
+            if (!empty($kelasItem->nama_kelas)) {
+                try {
+                    $kelasItem->nama_kelas = Crypt::decryptString($kelasItem->nama_kelas);
+                } catch (DecryptException $e) {
+                    $kelasItem->nama_kelas = '[Data Kelas Rusak]';
+                }
+            }
+        }
+
+        return view('edit_user', [
             'title' => 'Edit User - Student Management',
             'user' => $user,
             'kelas' => $kelas,
-        ];
-        return view('edit_user', $data);
+        ]);
     }
 
+    /**
+     * Update data user
+     */
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'npm' => 'required|string|max:20',
-            'kelas_id' => 'required|exists:kelas,id'
+            'kelas_id' => 'required|exists:kelas,id',
         ]);
 
         $user = $this->userModel->findOrFail($id);
         $user->update([
-            'nama' => $request->input('nama'),
-            'nim' => $request->input('npm'),
-            'kelas_id' => $request->input('kelas_id'),
+            'nama' => $validated['nama'],
+            'nim' => $validated['npm'],
+            'kelas_id' => $validated['kelas_id'],
         ]);
 
-        return redirect()->to('/user')->with('success', 'Data user berhasil diperbarui!');
+        return redirect()->route('user.index')->with('success', 'Data user berhasil diperbarui!');
     }
 
+    /**
+     * Hapus user
+     */
     public function destroy($id)
     {
         $user = $this->userModel->findOrFail($id);
         $user->delete();
 
-        return redirect()->to('/user')->with('success', 'Data user berhasil dihapus!');
+        return redirect()->route('user.index')->with('success', 'Data user berhasil dihapus!');
     }
 }

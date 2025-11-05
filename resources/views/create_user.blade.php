@@ -1,26 +1,13 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            Buat Pengguna Baru
+        </h2>
+    </x-slot>
 
-@section('content')
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-5">
         <div class="form-container">
-
-            {{-- 
-            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #3498db;">
-                <h5 style="color: #3498db; margin-bottom: 0.5rem;">Debug Info:</h5>
-                <p style="margin: 0; font-size: 0.9rem;">
-                    <strong>Jumlah Kelas:</strong> {{ $kelas->count() }}<br>
-                    <strong>Data:</strong> 
-                    @if($kelas->count() > 0)
-                        @foreach($kelas as $item)
-                            ID: {{ $item->id }}, Nama: {{ $item->nama_kelas }} |
-                        @endforeach
-                    @else
-                        Tidak ada data kelas
-                    @endif
-                </p>
-            </div>
-            --}}
 
             <div class="form-header">
                 <h1 class="form-title">
@@ -278,4 +265,5 @@
         transform: translateY(-1px);
     }
 </style>
-@endsection
+
+</x-app-layout>
